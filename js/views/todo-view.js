@@ -20,9 +20,13 @@ var app = app || {};
 			'click .toggle': 'toggleCompleted',
 			'dblclick label': 'edit',
 			'click .destroy': 'clear',
+			'click .new-description': 'edit_desc',
 			'keypress .edit': 'updateOnEnter',
 			'keydown .edit': 'revertOnEscape',
-			'blur .edit': 'close'
+			'keypress .edit-desc': 'updateOnEnter',
+			'keydown .edit-desc': 'revertOnEscape',
+			'blur .edit': 'close',
+			'blur .edit-desc': 'close'
 		},
 
 		// The TodoView listens for changes to its model, re-rendering. Since
@@ -48,12 +52,20 @@ var app = app || {};
 				return;
 			}
 
+
 			this.$el.html(this.template(this.model.toJSON()));
 			this.$el.toggleClass('completed', this.model.get('completed'));
 			this.toggleVisible();
 			this.$input = this.$('.edit');
+			var x = this.model.get('description') !== '' ? this.removeClassDescriptionEmpty():null;
+
 			return this;
 		},
+
+		removeClassDescriptionEmpty: function(){
+			this.$('.description-empty').toggleClass('description').removeClass('description-empty');
+		},
+
 
 		toggleVisible: function () {
 			this.$el.toggleClass('hidden', this.isHidden());
@@ -71,6 +83,12 @@ var app = app || {};
 		},
 
 		// Switch this view into `"editing"` mode, displaying the input field.
+
+		edit_desc: function () {
+			this.$el.addClass('editing-desc');
+			this.$('.edit-desc').focus();
+		},
+
 		edit: function () {
 			this.$el.addClass('editing');
 			this.$input.focus();
@@ -81,22 +99,28 @@ var app = app || {};
 			var value = this.$input.val();
 			var trimmedValue = value.trim();
 
-			// We don't want to handle blur events from an item that is no
+			var valueDesc = this.$('.edit-desc').val();
+			var trimmedValueDesc = valueDesc.trim();
+
+			//v We don't want to handle blur events from an item that is no
 			// longer being edited. Relying on the CSS class here has the
 			// benefit of us not having to maintain state in the DOM and the
 			// JavaScript logic.
-			if (!this.$el.hasClass('editing')) {
+			if (!this.$el.hasClass('editing') && !this.$el.hasClass('editing-desc')) {
 				return;
 			}
 
-			if (trimmedValue) {
-				this.model.save({ title: trimmedValue });
-			} else {
-				this.clear();
+			if(this.$el.hasClass('editing')){
+				var x = trimmedValue ? this.model.save({ title: trimmedValue }) : this.clear();
+				this.$el.removeClass('editing');
 			}
 
-			this.$el.removeClass('editing');
+			if(this.$el.hasClass('editing-desc')){
+				var y = trimmedValueDesc ? 	this.model.save({description: trimmedValueDesc}) :	this.model.save({description: ''});
+				this.$el.removeClass('editing-desc');
+			}
 		},
+
 
 		// If you hit `enter`, we're through editing the item.
 		updateOnEnter: function (e) {
@@ -109,10 +133,19 @@ var app = app || {};
 		// the `editing` state.
 		revertOnEscape: function (e) {
 			if (e.which === ESC_KEY) {
-				this.$el.removeClass('editing');
-				// Also reset the hidden input back to the original value.
-				this.$input.val(this.model.get('title'));
+				var x = this.$el.hasClass('editing') ? this.escapeEditing() : null;
+				var y = this.$el.hasClass('editing-desc') ? this.escapeEditingDesc() : null;
 			}
+		},
+
+		escapeEditing: function(){
+			this.$el.removeClass('editing');
+			this.$input.val(this.model.get('title'));
+		},
+
+		escapeEditingDesc: function(){
+			this.$el.removeClass('editing-desc');
+			this.$('.edit-desc').val(this.model.get('description'));
 		},
 
 		// Remove the item, destroy the model from *localStorage* and delete its view.
