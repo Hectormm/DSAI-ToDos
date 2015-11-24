@@ -5,6 +5,7 @@
 		<title>Backbone.js • TodoMVC</title>
 		<link rel="stylesheet" href="node_modules/todomvc-common/base.css">
 		<link rel="stylesheet" href="node_modules/todomvc-app-css/index.css">
+		<link rel="stylesheet" href="css/font-awesome.min.css">
 	</head>
 	<body>
 		<section class="todoapp">
@@ -33,6 +34,7 @@
 				<button class="destroy"></button>
 			</div>
 			<input class="edit" value="<%- title %>">
+			<input class="edit-desc" value="<%- description %>">
 		</script>
 		<script type="text/template" id="stats-template">
 			<span class="todo-count"><strong><%= remaining %></strong> <%= remaining === 1 ? 'item' : 'items' %> left</span>
